@@ -31,8 +31,10 @@ import tools.util.PathResolver._
  */
 object Compiler extends Global(new Settings()) {
 
+  private[compiler] val classpathSeparator = System.getProperty("path.separator")
+
   // TODO only add the path to the scala-library.jar, not the whole javaUserClassPath
-  settings.classpath.value += ";" + Environment.javaUserClassPath
+  settings.classpath.value += classpathSeparator + Environment.javaUserClassPath
   new Run
 
   override def forScaladoc = true
