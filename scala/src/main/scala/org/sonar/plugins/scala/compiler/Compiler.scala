@@ -21,6 +21,7 @@ package org.sonar.plugins.scala.compiler
 
 import tools.nsc._
 import tools.util.PathResolver._
+import java.net.URLClassLoader
 
 /**
  * This is a wrapper for the Scala compiler. It is used to access
@@ -33,8 +34,15 @@ object Compiler extends Global(new Settings()) {
 
   private[compiler] val classpathSeparator = System.getProperty("path.separator")
 
-  // TODO only add the path to the scala-library.jar, not the whole javaUserClassPath
-  settings.classpath.value += classpathSeparator + Environment.javaUserClassPath
+  private val scalaJarUrls: Option[String] = this.getClass.getClassLoader match {
+    case urlClassLoader: URLClassLoader => Some(urlClassLoader.getURLs.mkString(classpathSeparator))
+    case _ => None
+  }
+
+  private val additionalClassPath = classpathSeparator + scalaJarUrls.map(_ + classpathSeparator).getOrElse("") +
+      // TODO only add the path to the scala-library.jar, not the whole javaUserClassPath
+      Environment.javaUserClassPath
+  settings.classpath.value += additionalClassPath
   new Run
 
   override def forScaladoc = true
