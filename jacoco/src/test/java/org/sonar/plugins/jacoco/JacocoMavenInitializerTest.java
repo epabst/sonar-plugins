@@ -20,23 +20,31 @@
 
 package org.sonar.plugins.jacoco;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.argThat;
+import static org.mockito.Matchers.isNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Matchers;
+import org.sonar.api.resources.InputFile;
 import org.sonar.api.resources.Java;
 import org.sonar.api.resources.Project;
 import org.sonar.api.resources.ProjectFileSystem;
 
+import java.util.Collections;
+import java.util.List;
+
 public class JacocoMavenInitializerTest {
   private JaCoCoMavenPluginHandler mavenPluginHandler;
   private JacocoMavenInitializer initializer;
+  private static final List<InputFile> INPUT_FILE_LIST0 = Collections.emptyList();
+  private static final List<InputFile> INPUT_FILE_LIST1 = Collections.singletonList(mock(InputFile.class));
 
   @Before
   public void setUp() {
@@ -55,7 +63,7 @@ public class JacocoMavenInitializerTest {
   @Test
   public void shouldExecuteMaven() {
     Project project = mockProject();
-    when(project.getFileSystem().hasTestFiles(argThat(is(Java.INSTANCE)))).thenReturn(true);
+    when(project.getFileSystem().testFiles(argThat(is(Java.KEY)), argThat(is("scala")))).thenReturn(INPUT_FILE_LIST1);
     when(project.getAnalysisType()).thenReturn(Project.AnalysisType.DYNAMIC);
 
     assertThat(initializer.shouldExecuteOnProject(project), is(true));
@@ -65,7 +73,7 @@ public class JacocoMavenInitializerTest {
   @Test
   public void shouldNotExecuteMavenWhenReuseReports() {
     Project project = mockProject();
-    when(project.getFileSystem().hasTestFiles(argThat(is(Java.INSTANCE)))).thenReturn(true);
+    when(project.getFileSystem().testFiles(argThat(is(Java.KEY)), argThat(is("scala")))).thenReturn(INPUT_FILE_LIST1);
     when(project.getAnalysisType()).thenReturn(Project.AnalysisType.REUSE_REPORTS);
 
     assertThat(initializer.shouldExecuteOnProject(project), is(false));
@@ -74,7 +82,7 @@ public class JacocoMavenInitializerTest {
   @Test
   public void shouldNotExecuteMavenWhenNoTests() {
     Project project = mockProject();
-    when(project.getFileSystem().hasTestFiles(argThat(is(Java.INSTANCE)))).thenReturn(false);
+    when(project.getFileSystem().testFiles(argThat(is(Java.KEY)), argThat(is("scala")))).thenReturn(INPUT_FILE_LIST0);
     when(project.getAnalysisType()).thenReturn(Project.AnalysisType.DYNAMIC);
 
     assertThat(initializer.shouldExecuteOnProject(project), is(false));

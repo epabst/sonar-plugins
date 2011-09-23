@@ -65,9 +65,16 @@ public class JaCoCoSensorTest {
   }
 
   @Test
-  public void shouldExecuteOnProject() {
+  public void shouldExecuteOnJavaProject() {
     Project project = mock(Project.class);
     when(project.getLanguageKey()).thenReturn(Java.KEY);
+    assertThat(sensor.shouldExecuteOnProject(project), is(true));
+  }
+
+  @Test
+  public void shouldExecuteOnScalaProject() {
+    Project project = mock(Project.class);
+    when(project.getLanguageKey()).thenReturn("scala");
     assertThat(sensor.shouldExecuteOnProject(project), is(true));
   }
 

@@ -46,7 +46,8 @@ public class JaCoCoSensor implements Sensor, CoverageExtension {
   }
 
   public boolean shouldExecuteOnProject(Project project) {
-    return Java.KEY.equals(project.getLanguageKey());
+    String languageKey = project.getLanguageKey();
+    return Java.KEY.equals(languageKey) || "scala".equals(languageKey);
   }
 
   class UnitTestsAnalyzer extends AbstractAnalyzer {
