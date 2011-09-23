@@ -136,4 +136,14 @@ public class ScalaFile extends Resource<ScalaPackage> {
     }
     return StringUtils.substringBeforeLast(classname, ".");
   }
+
+  @Override
+  public String toString() {
+    return "ScalaFile{" +
+            "isUnitTest=" + isUnitTest +
+            ", filename='" + filename + '\'' +
+            ", longName='" + longName + '\'' +
+            ", parent=" + parent +
+            '}';
+  }
 }
