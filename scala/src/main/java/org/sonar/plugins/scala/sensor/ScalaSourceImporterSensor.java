@@ -19,7 +19,10 @@
  */
 package org.sonar.plugins.scala.sensor;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -49,15 +52,25 @@ public class ScalaSourceImporterSensor extends AbstractScalaSensor {
   }
 
   public void analyse(Project project, SensorContext sensorContext) {
-    ProjectFileSystem fileSystem = project.getFileSystem();
-    String charset = fileSystem.getSourceCharset().toString();
+    try {
+      ProjectFileSystem fileSystem = project.getFileSystem();
+      String charset = fileSystem.getSourceCharset().toString();
 
-    for (InputFile sourceFile : fileSystem.mainFiles(getScala().getKey())) {
-      addFileToSonar(sensorContext, sourceFile, false, charset);
-    }
+      //dedup the files.  This is important if the pom.xml has <testSourceDirectory>src/test/scala</testSourceDirectory>
+      Set<File> canonicalFiles = new HashSet<File>();
+      for (InputFile sourceFile : fileSystem.mainFiles(getScala().getKey())) {
+        if (canonicalFiles.add(sourceFile.getFile().getCanonicalFile())) {
+          addFileToSonar(sensorContext, sourceFile, false, charset);
+        }
+      }
 
-    for (InputFile testFile : fileSystem.testFiles(getScala().getKey())) {
-      addFileToSonar(sensorContext, testFile, true, charset);
+      for (InputFile testFile : fileSystem.testFiles(getScala().getKey())) {
+        if (canonicalFiles.add(testFile.getFile().getCanonicalFile())) {
+          addFileToSonar(sensorContext, testFile, true, charset);
+        }
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
     }
   }
 
